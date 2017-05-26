@@ -37,7 +37,7 @@ public interface DBConnection {
     String SQLINSERTPERMISSIONS1 = "INSERT INTO Permissions VALUES(";
     String SQLINSERTPERMISSIONS2 = "INSERT INTO Permissions VALUES(?,?)";
     String SQLINSERTPEOPLE1 = "INSERT INTO People VALUES(?,?,?,?,?,?)";
-    String SQLINSERTLOGS = "INSERT INTO Logs VALUES('Access Denied', CURRENT_TIMESTAMP,";
+    String SQLINSERTLOGS = "INSERT INTO Logs VALUES('";//Access Denied', CURRENT_TIMESTAMP,";
     
     String SQLUPDATEPEOPLE1 = "UPDATE People SET Pic = ?, Job = ? WHERE ID = ?";
     String SQLUPDATEPEOPLE2 = "UPDATE People SET IsDeleted = 1 Where ID = ";

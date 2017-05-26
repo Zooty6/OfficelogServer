@@ -24,13 +24,15 @@ public class OfficelogServer {
 //            No more words to say 
 //            Find me in the circle
 //            Find me in the end 
-            Scanner in = new Scanner(System.in);
-            handleInput(in.next());
+            Scanner in = new Scanner(System.in);            
+            handleInput(in.nextLine());
         }
     }
 
     private static void handleInput(String Input) {
-        switch (Input.toLowerCase()) {
+        System.out.println(Input);
+        String[] command = Input.split("\\s+");
+        switch (command[0].toLowerCase()) {
             case "hi":
             case "hello":
                 System.out.println("Hi!");
@@ -46,6 +48,35 @@ public class OfficelogServer {
                     }
                 } catch (Exception ex) {
                     System.out.println("Can't load 'Commands.txt'");
+                }
+                break;
+
+            case "list":
+                if (server.getClients().size() > 0) {
+                    for (ClientData client : server.getClients()) {
+                        System.out.print("CID: " + client.getID() + " ");
+                    }
+                } else {
+                    System.out.print("No client is connected.");
+                }
+                System.out.println();
+                break;
+
+            case "disconnect":
+                               
+                if (command.length == 2) {
+                    try {
+                        //System.out.println(command[1]);
+                        int id = Integer.parseInt(command[1]);
+                        //System.out.println(id);
+                        for (ClientData client : server.getClients()) {
+                            if (client.getID() == id) {
+                                client.getClientSocket().disconnect();
+                                server.getClients().remove(client);
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
                 }
 
                 break;

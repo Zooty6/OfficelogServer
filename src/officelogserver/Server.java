@@ -48,6 +48,10 @@ public class Server implements DBConnection {
         System.out.println("Server has started, listening at port: " + PORT);
     }
 
+    public ArrayList<ClientData> getClients() {
+        return clients;
+    }    
+
     private void AddListeners(SocketIOServer server) {
         server.addConnectListener((SocketIOClient client) -> {            
             for (ClientData client1 : clients) {
@@ -166,26 +170,49 @@ public class Server implements DBConnection {
 //                System.out.println(roomTemplate.getName());
 //            }
             ackSender.sendAckData(rooms);
-            
+            fox.close();
+            cat.close();            
         });
         
-        server.addEventListener("enterrequest", Moving.class, (sender, data, ackSender) -> {            
+        server.addEventListener("enterrequest", Moving.class, (sender, data, ackSender) -> { 
+            String event = "";
             String room = data.getRoom();
             int personID = data.getPersonID();
-            ResultSet rsPersonLoc = DatabaseConnection.createStatement().executeQuery("SELECT Loc FROM People WHERE ID = "+personID);
+            ResultSet rsPersonLoc = DatabaseConnection.createStatement().executeQuery("SELECT Loc FROM People WHERE ID = " + personID);
             rsPersonLoc.next();
             String loc = rsPersonLoc.getString(1);
-            System.out.println(loc);
+            //System.out.println(loc);
             ResultSet rsNeighbor = DatabaseConnection.createStatement().executeQuery("SELECT RNameB FROM RoomConnections WHERE RNameA = '"+room +"'");
             ArrayList<String> neighbors = new ArrayList<>();            
             while (rsNeighbor.next()){
                 neighbors.add(rsNeighbor.getString(1));
             }
-            System.out.println(neighbors);
+            //System.out.println(neighbors);
             ResultSet rsRoom = DatabaseConnection.createStatement().executeQuery("SELECT * FROM Rooms WHERE Name = '"+room + "'");
             rsRoom.next();
-            if(rsRoom.getBoolean("isOpened")){
-                System.out.println(rsRoom.getString(1));
+//            if(rsRoom.getBoolean("isOpen")){
+//                System.out.println(rsRoom.getString(1));
+//            }
+            ArrayList<String> permissions = new ArrayList<>();
+            ResultSet rsPer = DatabaseConnection.createStatement().executeQuery("SELECT RoomName FROM Permissions WHERE PersonID = " + personID);
+            while(rsPer.next()){
+                permissions.add(rsPer.getString(1));
+            }
+            
+            if(neighbors.contains(loc)){
+                //System.out.println("it's a neighbor");
+                if(permissions.contains(room) || rsRoom.getBoolean("isOpen")){
+                    //event = "Entered";
+                    DatabaseConnection.createStatement().executeUpdate(SQLUPDATEPEOPLE3FIRST + room +"'" + SQLUPDATEPEOPLE3SECOND + personID); //"UPDATE People SET Loc = '"  " WHERE ID = "
+                    server.getBroadcastOperations().sendEvent("entered", data);
+                }else{
+                    event = "Acces Denied";
+                    DatabaseConnection.createStatement().executeUpdate(SQLINSERTLOGS + event +"', CURRENT_TIMESTAMP, "+ personID+ ", '" + room + "')");
+                }
+                //System.out.println(SQLINSERTLOGS + event +"', CURRENT_TIMESTAMP, "+ personID+ ", '" + room + "')");
+                
+            }else{
+                System.out.println("Impossible step, possibly client has an outdated dataset.");
             }
             
 //            if (((ButtonRoom) (event.getSource())).getRoom().isOpen()
