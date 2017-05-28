@@ -24,13 +24,13 @@ public class OfficelogServer {
 //            No more words to say 
 //            Find me in the circle
 //            Find me in the end 
-            Scanner in = new Scanner(System.in);            
+            Scanner in = new Scanner(System.in);
             handleInput(in.nextLine());
         }
     }
 
     private static void handleInput(String Input) {
-        System.out.println(Input);
+        //System.out.println(Input);
         String[] command = Input.split("\\s+");
         switch (command[0].toLowerCase()) {
             case "hi":
@@ -63,12 +63,9 @@ public class OfficelogServer {
                 break;
 
             case "disconnect":
-                               
                 if (command.length == 2) {
                     try {
-                        //System.out.println(command[1]);
                         int id = Integer.parseInt(command[1]);
-                        //System.out.println(id);
                         for (ClientData client : server.getClients()) {
                             if (client.getID() == id) {
                                 client.getClientSocket().disconnect();
@@ -76,9 +73,36 @@ public class OfficelogServer {
                             }
                         }
                     } catch (Exception e) {
+                        System.out.println("Wrong parameter: " + command[1]);
                     }
+                } else if (command.length == 1) {
+                    for (ClientData client : server.getClients()) {
+                        client.getClientSocket().disconnect();                        
+                    }
+                    server.getClients().clear();
                 }
 
+                break;
+                
+            case "message":
+                if(command.length>1){
+                    String message = "";
+                    try{
+                        int id = Integer.parseInt(command[1]);
+                        for (int i = 2; i < command.length; i++) {
+                            message+=command[i] + " ";
+                        }
+                        for (ClientData client : server.getClients()) {
+                            if(client.getID() == id)
+                                client.getClientSocket().sendEvent("message", message);
+                        }
+                    }catch(NumberFormatException e){                        
+                        for (int i = 1; i < command.length; i++) {
+                            message+=command[i] + " ";
+                        }
+                        server.broadcastMessage(message);
+                    }
+                }
                 break;
 
             case "exit":
